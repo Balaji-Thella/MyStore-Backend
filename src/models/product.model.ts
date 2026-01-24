@@ -12,11 +12,10 @@ interface ProductAttributes {
   status: number;
 }
 
-interface ProductCreationAttributes
-  extends Optional<
-    ProductAttributes,
-    "id" | "description" | "imageUrl" | "status"
-  > {}
+interface ProductCreationAttributes extends Optional<
+  ProductAttributes,
+  "id" | "description" | "imageUrl" | "status"
+> {}
 
 export default class Product
   extends Model<ProductAttributes, ProductCreationAttributes>
@@ -87,11 +86,8 @@ export default class Product
         tableName: "products",
         modelName: "Product",
         timestamps: true,
-        indexes: [
-          { fields: ["storeId"] },
-          { unique: true, fields: ["storeId", "slug"] },
-        ],
-      }
+        indexes: [{ fields: ["storeId"] }, { unique: true, fields: ["slug"] }],
+      },
     );
   }
 }

@@ -3,7 +3,6 @@ import { Product, Store } from "../models";
 import catchAsync from "../utils/catchAsync";
 import AppError from "../utils/AppError";
 import slugify from "slugify";
-import { get } from "http";
 
 const ProductsController = {
   createProduct: catchAsync(async (req: any, res: Response) => {
