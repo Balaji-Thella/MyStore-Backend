@@ -1,7 +1,7 @@
 import { Response } from "express";
 import catchAsync from "../utils/catchAsync";
 import AppError from "../utils/AppError";
-import { Order, OrderItem, Product } from "../models";
+import { Customer, Order, OrderItem, Product } from "../models";
 import { sequelize } from "../config/db";
 
 const OrderController = {
@@ -94,21 +94,92 @@ const OrderController = {
   }),
 
   getOrderByStatus: catchAsync(async (req: any, res: Response) => {
-    const { status } = req.params;
-    const { storeId } = req.query;
+    const { status, storeId } = req.params;
+    const { page = 1, limit = 9 } = req.query;
 
-    if (!storeId)
-      throw new AppError("storeId query parameter is required", 400);
+    const pageNumber = Math.max(Number(page), 1);
+    const pageSize = Math.max(Number(limit), 1);
+    const offset = (pageNumber - 1) * pageSize;
 
-    const orders = await Order.findAll({
+    const { rows: orders, count } = await Order.findAndCountAll({
       where: {
         storeId,
         status,
       },
-      include: [{ model: OrderItem }],
+      limit: pageSize,
+      offset,
+      order: [["createdAt", "DESC"]],
+      include: [
+        {
+          model: OrderItem,
+          as: "items",
+          include: [
+            {
+              model: Product,
+              as: "products",
+            },
+          ],
+        },
+        {
+          model: Customer,
+          as: "customer",
+        },
+      ],
     });
 
-    return res.json(orders);
+    return res.json({
+      data: orders,
+      pagination: {
+        total: count,
+        page: pageNumber,
+        limit: pageSize,
+        totalPages: Math.ceil(count / pageSize),
+      },
+    });
+  }),
+
+  getOrdersByStore: catchAsync(async (req: any, res: Response) => {
+    const { storeId } = req.params;
+    const { page = 1, limit = 9 } = req.query;
+
+    const pageNumber = Math.max(Number(page), 1);
+    const pageSize = Math.max(Number(limit), 1);
+    const offset = (pageNumber - 1) * pageSize;
+
+    const { rows: orders, count } = await Order.findAndCountAll({
+      where: {
+        storeId,
+      },
+      limit: pageSize,
+      offset,
+      order: [["createdAt", "DESC"]],
+      include: [
+        {
+          model: OrderItem,
+          as: "items",
+          include: [
+            {
+              model: Product,
+              as: "products",
+            },
+          ],
+        },
+        {
+          model: Customer,
+          as: "customer",
+        },
+      ],
+    });
+
+    return res.json({
+      data: orders,
+      pagination: {
+        total: count,
+        page: pageNumber,
+        limit: pageSize,
+        totalPages: Math.ceil(count / pageSize),
+      },
+    });
   }),
 
   getOrderByCustomer: catchAsync(async (req: any, res: Response) => {
@@ -123,7 +194,12 @@ const OrderController = {
         storeId,
         customerId,
       },
-      include: [{ model: OrderItem }],
+      include: [
+        {
+          model: OrderItem,
+          as: "items",
+        },
+      ],
     });
 
     return res.json(orders);
@@ -145,20 +221,12 @@ const OrderController = {
     return res.json(order);
   }),
 
-  getOrdersByStore: catchAsync(async (req: any, res: Response) => {
-    const { storeId } = req.params;
-
-    const orders = await Order.findAll({
-      where: { storeId },
-      include: [{ model: OrderItem }],
-    });
-    return res.json(orders);
-  }),
-
   getOrderById: catchAsync(async (req: any, res: Response) => {
     const { id } = req.params;
 
-    const order = await Order.findByPk(id, { include: [{ model: OrderItem }] });
+    const order = await Order.findByPk(id, {
+      include: [{ model: OrderItem, as: "items" }],
+    });
     if (!order) throw new AppError("Order not found", 404);
 
     return res.json(order);

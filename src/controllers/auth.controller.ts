@@ -59,7 +59,7 @@ const AuthController = {
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET!,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
     // Set cookie
@@ -67,7 +67,7 @@ const AuthController = {
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
     });
 
     return res.json({ message: "OTP verified successfully" });

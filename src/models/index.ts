@@ -35,5 +35,6 @@ Order.belongsTo(Store, { foreignKey: "storeId", as: "store" });
 Order.belongsTo(Customer, { foreignKey: "customerId", as: "customer" });
 
 OrderItem.belongsTo(Order, { foreignKey: "orderId", as: "order" });
+OrderItem.belongsTo(Product, { foreignKey: "productId", as: "products" });
 
 export { Seller, Store, Product, Customer, Order, OrderItem };
